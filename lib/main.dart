@@ -6,7 +6,7 @@ import 'features/temperature/presentation/pages/temperature_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  di.init(); // راه‌اندازی GetIt
+  di.init(); 
   runApp(const MyApp());
 }
 
@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bluetooth Temperature',
       theme: ThemeData(primarySwatch: Colors.blue),
-      // تزریق Bloc به درخت ویجت‌ها
       home: BlocProvider(
         create: (_) => di.sl<TemperatureBloc>(),
         child: TemperatureScreen(),

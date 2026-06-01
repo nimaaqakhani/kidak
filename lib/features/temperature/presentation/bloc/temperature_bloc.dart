@@ -17,26 +17,18 @@ class TemperatureBloc extends Bloc<TemperatureEvent, TemperatureState> {
     required this.disconnectUseCase,
   }) : super(TemperatureInitial()) {
     
-    // ۱. مدیریت اتصال و گوش دادن به استریم
     on<ConnectGadgetEvent>((event, emit) async {
       emit(TemperatureConnecting());
       try {
-        // ابتدا متصل می‌شویم
         await connectUseCase(event.device);
         emit(TemperatureConnected());
         
-        // اشتراک قبلی را لغو می‌کنیم تا داده‌ها تکراری نشوند
         await _tempSubscription?.cancel();
-        
-        // شروع گوش دادن زنده به گجت
-        _tempSubscription = getStreamUseCase().listen(
+                _tempSubscription = getStreamUseCase().listen(
           (tempEntity) {
-            // هر بار که گجت دیتا بفرستد، این رویداد فایر می‌شود
             add(TemperatureUpdatedEvent(tempEntity.celsius, tempEntity.rawBytes));
           },
           onError: (error) {
-            // در صورت قطع شدن یا خطای استریم
-            print("Stream error: $error");
           }
         );
       } catch (e) {
@@ -44,7 +36,6 @@ class TemperatureBloc extends Bloc<TemperatureEvent, TemperatureState> {
       }
     });
 
-    // ۲. مدیریت بروزرسانی دما (اینجا دیتا دقیقاً روی صفحه می‌نشیند)
     on<TemperatureUpdatedEvent>((event, emit) {
       emit(TemperatureReading(
         currentTemp: event.temperature, 
@@ -52,26 +43,21 @@ class TemperatureBloc extends Bloc<TemperatureEvent, TemperatureState> {
       ));
     });
 
-    // ۳. مدیریت قطع اتصال
     on<DisconnectGadgetEvent>((event, emit) async {
-      // ابتدا استریم را می‌بندیم تا دیتای جدیدی نیاید
       await _tempSubscription?.cancel();
       _tempSubscription = null;
       
       try {
         await disconnectUseCase();
       } catch (e) {
-        // مدیریت خطای خاموش بودن بلوتوث هنگام قطع اتصال
         print("Disconnect error: $e");
       }
-      // بازگشت به صفحه اسکن
       emit(TemperatureInitial());
     });
   }
 
   @override
   Future<void> close() async {
-    // هنگام بسته شدن کامل اپلیکیشن یا خروج از صفحه
     await _tempSubscription?.cancel();
     try {
       await disconnectUseCase();

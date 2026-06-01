@@ -14,17 +14,12 @@ class BluetoothRemoteDataSourceImpl implements BluetoothRemoteDataSource {
   @override
   Future<void> connectAndDiscover(BluetoothDevice device) async {
     _device = device;
-    
-    // حل ارور لایسنس با استفاده از مقادیر مجاز که گفتید (commercial)
-    // نکته: اگر با این کد ارور کامپایل دارید، مشکل جای دیگری است (احتمالاً باید لایسنس را در main ست کنید)
-    await _device!.connect(
+        await _device!.connect(
       autoConnect: false,
     );
     
-    // ۲. کشف سرویس‌ها
     List<BluetoothService> services = await _device!.discoverServices();
     
-    // ۳. پیدا کردن مشخصه Notify
     for (var service in services) {
       for (var char in service.characteristics) {
         if (char.properties.notify) {
@@ -43,7 +38,6 @@ class BluetoothRemoteDataSourceImpl implements BluetoothRemoteDataSource {
     if (_tempCharacteristic == null) {
       throw Exception("ابتدا باید به دستگاه متصل شوید.");
     }
-    // در برخی نسخه‌ها از onValueReceived استفاده می‌شود
     return _tempCharacteristic!.lastValueStream;
   }
 
